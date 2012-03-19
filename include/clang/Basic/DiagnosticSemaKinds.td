@@ -5044,6 +5044,15 @@ def err_atomic_op_bitwise_needs_atomic_int : Error<
   "first argument to bitwise atomic operation must be a pointer to "
   "%select{|atomic }0integer (%1 invalid)">;
 
+def err_overflow_builtin_must_be_pointer : Error<
+  "first argument to overflow builtin must be a pointer (%0 invalid)">;
+def err_overflow_builtin_must_be_pointer_int : Error<
+  "first argument to overflow builtin must be a pointer to integer "
+  "(%0 invalid)">;
+def err_overflow_builtin_pointer_size : Error<
+  "first argument to overflow builtin must be a pointer to 2, 4, or 8 "
+  "type (%0 invalid)">;
+
 def err_deleted_function_use : Error<"attempt to use a deleted function">;
 
 def err_kern_type_not_void_return : Error<

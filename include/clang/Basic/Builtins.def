@@ -659,6 +659,14 @@ BUILTIN(__sync_fetch_and_max, "iiD*i", "n")
 BUILTIN(__sync_fetch_and_umin, "UiUiD*Ui", "n")
 BUILTIN(__sync_fetch_and_umax, "UiUiD*Ui", "n")
 
+// Overflow builtins.
+BUILTIN(__overflow_sadd, "v.", "t")
+BUILTIN(__overflow_uadd, "v.", "t")
+BUILTIN(__overflow_ssub, "v.", "t")
+BUILTIN(__overflow_usub, "v.", "t")
+BUILTIN(__overflow_smul, "v.", "t")
+BUILTIN(__overflow_umul, "v.", "t")
+
 // Random libc builtins.
 BUILTIN(__builtin_abort, "v", "Fnr")
 BUILTIN(__builtin_index, "c*cC*i", "Fn")

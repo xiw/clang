@@ -141,6 +141,30 @@ static RValue EmitBinaryAtomicPost(CodeGenFunction &CGF,
   return RValue::get(Result);
 }
 
+static RValue EmitOverflow(CodeGenFunction &CGF,
+                           Intrinsic::ID ID,
+                           const CallExpr *E) {
+    QualType T = E->getArg(1)->getType();
+    llvm::Value *DestPtr = CGF.EmitScalarExpr(E->getArg(0));
+    unsigned AddrSpace =
+      cast<llvm::PointerType>(DestPtr->getType())->getAddressSpace();
+
+    llvm::IntegerType *IntType =
+      llvm::IntegerType::get(CGF.getLLVMContext(),
+                             CGF.getContext().getTypeSize(T));
+    llvm::Type *IntPtrType = IntType->getPointerTo(AddrSpace);
+
+    Value *P, *V0, *V1;
+    P = CGF.Builder.CreateBitCast(DestPtr, IntPtrType);
+    V0 = EmitToInt(CGF, CGF.EmitScalarExpr(E->getArg(1)), T, IntType);
+    V1 = EmitToInt(CGF, CGF.EmitScalarExpr(E->getArg(2)), T, IntType);
+
+    Function *F = CGF.CGM.getIntrinsic(ID, IntType);
+    CallInst *Result = CGF.Builder.CreateCall2(F, V0, V1);
+    CGF.Builder.CreateStore(CGF.Builder.CreateExtractValue(Result, 0), P);
+    return RValue::get(CGF.Builder.CreateExtractValue(Result, 1));
+}
+
 /// EmitFAbs - Emit a call to fabs/fabsf/fabsl, depending on the type of ValTy,
 /// which must be a scalar floating point type.
 static Value *EmitFAbs(CodeGenFunction &CGF, Value *V, QualType ValTy) {
@@ -1253,6 +1277,20 @@ RValue CodeGenFunction::EmitBuiltinExpr(const FunctionDecl *FD,
     Builder.SetInsertPoint(ContBB);
     return RValue::get(0);
   }
+
+  // Overflow builtins.
+  case Builtin::BI__overflow_sadd:
+    return EmitOverflow(*this, Intrinsic::sadd_with_overflow, E);
+  case Builtin::BI__overflow_uadd:
+    return EmitOverflow(*this, Intrinsic::uadd_with_overflow, E);
+  case Builtin::BI__overflow_ssub:
+    return EmitOverflow(*this, Intrinsic::ssub_with_overflow, E);
+  case Builtin::BI__overflow_usub:
+    return EmitOverflow(*this, Intrinsic::usub_with_overflow, E);
+  case Builtin::BI__overflow_smul:
+    return EmitOverflow(*this, Intrinsic::smul_with_overflow, E);
+  case Builtin::BI__overflow_umul:
+    return EmitOverflow(*this, Intrinsic::umul_with_overflow, E);
 
     // Library functions with special handling.
   case Builtin::BIsqrt:

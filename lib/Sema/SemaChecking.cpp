@@ -63,7 +63,7 @@ static bool checkArgCount(Sema &S, CallExpr *call, unsigned desiredArgCount) {
     
   return S.Diag(range.getBegin(), diag::err_typecheck_call_too_many_args)
     << 0 /*function call*/ << desiredArgCount << argCount
-    << call->getArg(1)->getSourceRange();
+    << range;
 }
 
 /// Check that the first argument to __builtin_annotation is an integer
@@ -270,6 +270,15 @@ Sema::CheckBuiltinFunctionCall(unsigned BuiltinID, CallExpr *TheCall) {
   case Builtin::BI##ID: \
     return SemaAtomicOpsOverloaded(TheCallResult, AtomicExpr::AO##ID);
 #include "clang/Basic/Builtins.def"
+  case Builtin::BI__overflow_sadd:
+  case Builtin::BI__overflow_uadd:
+  case Builtin::BI__overflow_ssub:
+  case Builtin::BI__overflow_usub:
+  case Builtin::BI__overflow_smul:
+  case Builtin::BI__overflow_umul:
+    if (SemaOverflowOpsOverloaded(TheCall))
+      return ExprError();
+    break;
   case Builtin::BI__builtin_annotation:
     if (SemaBuiltinAnnotation(*this, TheCall))
       return ExprError();
@@ -615,6 +624,53 @@ bool Sema::CheckBlockCall(NamedDecl *NDecl, CallExpr *TheCall,
             TheCall->getRParenLoc(),
             TheCall->getCallee()->getSourceRange(), CallType);
   
+  return false;
+}
+
+bool Sema::SemaOverflowOpsOverloaded(CallExpr *TheCall) {
+  DeclRefExpr *DRE =cast<DeclRefExpr>(TheCall->getCallee()->IgnoreParenCasts());
+  // All these operations take the following form:
+  // bool __overflow_*(T*, T, T);
+
+  if (checkArgCount(*this, TheCall, 3))
+    return true;
+
+  Expr *Ptr = TheCall->getArg(0);
+  Ptr = DefaultFunctionArrayLvalueConversion(Ptr).get();
+  const PointerType *pointerType = Ptr->getType()->getAs<PointerType>();
+  if (!pointerType)
+    return Diag(DRE->getLocStart(), diag::err_overflow_builtin_must_be_pointer)
+      << Ptr->getType() << Ptr->getSourceRange();
+
+  QualType ValTy = pointerType->getPointeeType();
+  if (!ValTy->isIntegerType())
+    return Diag(DRE->getLocStart(), diag::err_overflow_builtin_must_be_pointer_int)
+      << Ptr->getType() << Ptr->getSourceRange();
+
+  switch (Context.getTypeSizeInChars(ValTy).getQuantity()) {
+  case 2:
+  case 4:
+  case 8:
+    break;
+  default:
+    return Diag(DRE->getLocStart(), diag::err_overflow_builtin_pointer_size)
+      << Ptr->getType() << Ptr->getSourceRange();
+  }
+
+  // The first argument --- the pointer --- has a fixed type; we
+  // deduce the types of the rest of the arguments accordingly.  Walk
+  // the remaining arguments, converting them to the deduced value type.
+  for (unsigned i = 1; i != 3; ++i) {
+    ExprResult Arg = TheCall->getArg(i);
+    InitializedEntity Entity =
+        InitializedEntity::InitializeParameter(Context, ValTy, false);
+    Arg = PerformCopyInitialization(Entity, SourceLocation(), Arg);
+    if (Arg.isInvalid())
+      return true;
+    TheCall->setArg(i, Arg.get());
+  }
+
+  TheCall->setType(Context.BoolTy);
   return false;
 }
 

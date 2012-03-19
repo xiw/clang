@@ -7232,6 +7232,7 @@ private:
   ExprResult SemaBuiltinAtomicOverloaded(ExprResult TheCallResult);
   ExprResult SemaAtomicOpsOverloaded(ExprResult TheCallResult,
                                      AtomicExpr::AtomicOp Op);
+  bool SemaOverflowOpsOverloaded(CallExpr *TheCall);
   bool SemaBuiltinConstantArg(CallExpr *TheCall, int ArgNum,
                               llvm::APSInt &Result);
 
