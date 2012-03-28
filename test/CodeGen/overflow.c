@@ -6,20 +6,20 @@ void f(void) {
   extern int r, a, b;
 
   // CHECK: llvm.sadd.with.overflow.i32
-  __overflow_sadd(&r, a, b);
+  __builtin_sadd_with_overflow(&r, a, b);
 
   // CHECK: llvm.uadd.with.overflow.i32
-  __overflow_uadd(&r, a, b);
+  __builtin_uadd_with_overflow(&r, a, b);
 
   // CHECK: llvm.ssub.with.overflow.i32
-  __overflow_ssub(&r, a, b);
+  __builtin_ssub_with_overflow(&r, a, b);
 
   // CHECK: llvm.usub.with.overflow.i32
-  __overflow_usub(&r, a, b);
+  __builtin_usub_with_overflow(&r, a, b);
 
   // CHECK: llvm.smul.with.overflow.i32
-  __overflow_smul(&r, a, b);
+  __builtin_smul_with_overflow(&r, a, b);
 
   // CHECK: llvm.umul.with.overflow.i32
-  __overflow_umul(&r, a, b);
+  __builtin_umul_with_overflow(&r, a, b);
 }

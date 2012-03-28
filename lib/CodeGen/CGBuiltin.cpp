@@ -1279,17 +1279,17 @@ RValue CodeGenFunction::EmitBuiltinExpr(const FunctionDecl *FD,
   }
 
   // Overflow builtins.
-  case Builtin::BI__overflow_sadd:
+  case Builtin::BI__builtin_sadd_with_overflow:
     return EmitOverflow(*this, Intrinsic::sadd_with_overflow, E);
-  case Builtin::BI__overflow_uadd:
+  case Builtin::BI__builtin_uadd_with_overflow:
     return EmitOverflow(*this, Intrinsic::uadd_with_overflow, E);
-  case Builtin::BI__overflow_ssub:
+  case Builtin::BI__builtin_ssub_with_overflow:
     return EmitOverflow(*this, Intrinsic::ssub_with_overflow, E);
-  case Builtin::BI__overflow_usub:
+  case Builtin::BI__builtin_usub_with_overflow:
     return EmitOverflow(*this, Intrinsic::usub_with_overflow, E);
-  case Builtin::BI__overflow_smul:
+  case Builtin::BI__builtin_smul_with_overflow:
     return EmitOverflow(*this, Intrinsic::smul_with_overflow, E);
-  case Builtin::BI__overflow_umul:
+  case Builtin::BI__builtin_umul_with_overflow:
     return EmitOverflow(*this, Intrinsic::umul_with_overflow, E);
 
     // Library functions with special handling.
