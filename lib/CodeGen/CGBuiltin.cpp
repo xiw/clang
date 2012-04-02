@@ -142,8 +142,9 @@ static RValue EmitBinaryAtomicPost(CodeGenFunction &CGF,
 }
 
 static RValue EmitOverflow(CodeGenFunction &CGF,
-                           Intrinsic::ID ID,
-                           const CallExpr *E) {
+                           const CallExpr *E,
+                           Intrinsic::ID SID,
+                           Intrinsic::ID UID) {
     QualType T = E->getArg(1)->getType();
     llvm::Value *DestPtr = CGF.EmitScalarExpr(E->getArg(0));
     unsigned AddrSpace =
@@ -159,6 +160,7 @@ static RValue EmitOverflow(CodeGenFunction &CGF,
     V0 = EmitToInt(CGF, CGF.EmitScalarExpr(E->getArg(1)), T, IntType);
     V1 = EmitToInt(CGF, CGF.EmitScalarExpr(E->getArg(2)), T, IntType);
 
+    Intrinsic::ID ID = T->hasSignedIntegerRepresentation()? SID: UID;
     Function *F = CGF.CGM.getIntrinsic(ID, IntType);
     CallInst *Result = CGF.Builder.CreateCall2(F, V0, V1);
     CGF.Builder.CreateStore(CGF.Builder.CreateExtractValue(Result, 0), P);
@@ -1279,18 +1281,15 @@ RValue CodeGenFunction::EmitBuiltinExpr(const FunctionDecl *FD,
   }
 
   // Overflow builtins.
-  case Builtin::BI__builtin_sadd_with_overflow:
-    return EmitOverflow(*this, Intrinsic::sadd_with_overflow, E);
-  case Builtin::BI__builtin_uadd_with_overflow:
-    return EmitOverflow(*this, Intrinsic::uadd_with_overflow, E);
-  case Builtin::BI__builtin_ssub_with_overflow:
-    return EmitOverflow(*this, Intrinsic::ssub_with_overflow, E);
-  case Builtin::BI__builtin_usub_with_overflow:
-    return EmitOverflow(*this, Intrinsic::usub_with_overflow, E);
-  case Builtin::BI__builtin_smul_with_overflow:
-    return EmitOverflow(*this, Intrinsic::smul_with_overflow, E);
-  case Builtin::BI__builtin_umul_with_overflow:
-    return EmitOverflow(*this, Intrinsic::umul_with_overflow, E);
+  case Builtin::BI__builtin_add_with_overflow:
+    return EmitOverflow(*this, E, Intrinsic::sadd_with_overflow,
+                        Intrinsic::uadd_with_overflow);
+  case Builtin::BI__builtin_sub_with_overflow:
+    return EmitOverflow(*this, E, Intrinsic::ssub_with_overflow,
+                        Intrinsic::usub_with_overflow);
+  case Builtin::BI__builtin_mul_with_overflow:
+    return EmitOverflow(*this, E, Intrinsic::smul_with_overflow,
+                        Intrinsic::umul_with_overflow);
 
     // Library functions with special handling.
   case Builtin::BIsqrt:

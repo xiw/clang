@@ -270,12 +270,9 @@ Sema::CheckBuiltinFunctionCall(unsigned BuiltinID, CallExpr *TheCall) {
   case Builtin::BI##ID: \
     return SemaAtomicOpsOverloaded(TheCallResult, AtomicExpr::AO##ID);
 #include "clang/Basic/Builtins.def"
-  case Builtin::BI__builtin_sadd_with_overflow:
-  case Builtin::BI__builtin_uadd_with_overflow:
-  case Builtin::BI__builtin_ssub_with_overflow:
-  case Builtin::BI__builtin_usub_with_overflow:
-  case Builtin::BI__builtin_smul_with_overflow:
-  case Builtin::BI__builtin_umul_with_overflow:
+  case Builtin::BI__builtin_add_with_overflow:
+  case Builtin::BI__builtin_sub_with_overflow:
+  case Builtin::BI__builtin_mul_with_overflow:
     if (SemaOverflowOpsOverloaded(TheCall))
       return ExprError();
     break;
