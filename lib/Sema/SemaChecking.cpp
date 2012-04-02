@@ -627,7 +627,7 @@ bool Sema::CheckBlockCall(NamedDecl *NDecl, CallExpr *TheCall,
 bool Sema::SemaOverflowOpsOverloaded(CallExpr *TheCall) {
   DeclRefExpr *DRE =cast<DeclRefExpr>(TheCall->getCallee()->IgnoreParenCasts());
   // All these operations take the following form:
-  // bool __overflow_*(T*, T, T);
+  // bool __builtin_*_with_overflow(T*, T, T);
 
   if (checkArgCount(*this, TheCall, 3))
     return true;
