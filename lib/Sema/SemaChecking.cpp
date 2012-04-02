@@ -645,6 +645,7 @@ bool Sema::SemaOverflowOpsOverloaded(CallExpr *TheCall) {
       << Ptr->getType() << Ptr->getSourceRange();
 
   switch (Context.getTypeSizeInChars(ValTy).getQuantity()) {
+  case 1:
   case 2:
   case 4:
   case 8:
