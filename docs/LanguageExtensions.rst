@@ -1409,6 +1409,42 @@ C11's ``<stdatomic.h>`` header.  These builtins provide the semantics of the
 * ``__c11_atomic_fetch_or``
 * ``__c11_atomic_fetch_xor``
 
+Arithmetic with overflow builtins
+---------------------------------
+
+Arithmetic with overflow builtins are used to perform arithmetic operations
+with overflow detection.
+
+**Syntax**:
+
+.. code-block:: c++
+
+  bool __builtin_add_with_overflow(type *ptr, type a, type b);
+  bool __builtin_sub_with_overflow(type *ptr, type a, type b);
+  bool __builtin_mul_with_overflow(type *ptr, type a, type b);
+
+**Example of Use**:
+
+.. code-block:: c++
+
+  void *malloc_array(size_t n, size_t size) {
+    size_t bytes;
+    if (__builtin_mul_with_overflow(&bytes, n, size))
+      return NULL;
+    return malloc(bytes);
+  }
+
+**Description**:
+
+``__builtin_OP_with_overflow(ptr, a, b)`` stores the result of
+``a OP b`` in ``ptr``, and returns true if an overflow
+occurred during the arithmetic operation.  Note that *type*
+is inferred from ``*ptr``.  These builtins help developers write
+more efficient and correct code by avoiding ad hoc overflow checks.
+
+Query for this feature with
+``__has_builtin(__builtin_OP_with_overflow)``.
+
 Non-standard C++11 Attributes
 =============================
 
