@@ -649,6 +649,7 @@ bool Sema::SemaOverflowOpsOverloaded(CallExpr *TheCall) {
   case 2:
   case 4:
   case 8:
+  case 16:
     break;
   default:
     return Diag(DRE->getLocStart(), diag::err_overflow_builtin_pointer_size)
