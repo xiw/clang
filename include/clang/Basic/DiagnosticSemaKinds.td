@@ -5049,9 +5049,6 @@ def err_overflow_builtin_must_be_pointer : Error<
 def err_overflow_builtin_must_be_pointer_int : Error<
   "first argument to overflow builtin must be a pointer to integer "
   "(%0 invalid)">;
-def err_overflow_builtin_pointer_size : Error<
-  "first argument to overflow builtin must be a pointer to 1,2,4,8 or 16 byte "
-  "type (%0 invalid)">;
 
 def err_deleted_function_use : Error<"attempt to use a deleted function">;
 

@@ -644,18 +644,6 @@ bool Sema::SemaOverflowOpsOverloaded(CallExpr *TheCall) {
     return Diag(DRE->getLocStart(), diag::err_overflow_builtin_must_be_pointer_int)
       << Ptr->getType() << Ptr->getSourceRange();
 
-  switch (Context.getTypeSizeInChars(ValTy).getQuantity()) {
-  case 1:
-  case 2:
-  case 4:
-  case 8:
-  case 16:
-    break;
-  default:
-    return Diag(DRE->getLocStart(), diag::err_overflow_builtin_pointer_size)
-      << Ptr->getType() << Ptr->getSourceRange();
-  }
-
   // The first argument --- the pointer --- has a fixed type; we
   // deduce the types of the rest of the arguments accordingly.  Walk
   // the remaining arguments, converting them to the deduced value type.
