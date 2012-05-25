@@ -160,7 +160,7 @@ static RValue EmitOverflow(CodeGenFunction &CGF,
     V0 = EmitToInt(CGF, CGF.EmitScalarExpr(E->getArg(1)), T, IntType);
     V1 = EmitToInt(CGF, CGF.EmitScalarExpr(E->getArg(2)), T, IntType);
 
-    Intrinsic::ID ID = T->hasSignedIntegerRepresentation()? SID: UID;
+    Intrinsic::ID ID = T->hasSignedIntegerRepresentation() ? SID : UID;
     Function *F = CGF.CGM.getIntrinsic(ID, IntType);
     CallInst *Result = CGF.Builder.CreateCall2(F, V0, V1);
     CGF.Builder.CreateStore(CGF.Builder.CreateExtractValue(Result, 0), P);
