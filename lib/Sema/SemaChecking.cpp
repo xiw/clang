@@ -640,7 +640,7 @@ bool Sema::SemaOverflowOpsOverloaded(CallExpr *TheCall) {
       << Ptr->getType() << Ptr->getSourceRange();
 
   QualType ValTy = pointerType->getPointeeType();
-  if (!ValTy->isIntegerType())
+  if (!ValTy->isIntegerType() || ValTy->isBooleanType())
     return Diag(DRE->getLocStart(), diag::err_overflow_builtin_must_be_pointer_int)
       << Ptr->getType() << Ptr->getSourceRange();
 
