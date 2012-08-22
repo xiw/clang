@@ -4187,6 +4187,44 @@ static void handleForceInlineAttr(Sema &S, Decl *D, const AttributeList &Attr) {
     S.Diag(Attr.getLoc(), diag::warn_attribute_ignored) << Attr.getName();
 }
 
+static void handleRangeAttr(Sema &S, Decl *D, const AttributeList &Attr) {
+  // Check the attribute arguments.
+  if (!checkAttributeNumArgs(S, Attr, 2))
+    return;
+
+  if (!isa<ValueDecl>(D)) {
+    S.Diag(Attr.getLoc(), diag::warn_attribute_wrong_decl_type)
+      << Attr.getName() << ExpectedVariable;
+    return;
+  }
+
+  // Check the type of D.
+  ValueDecl *VD = cast<ValueDecl>(D);
+  if (!VD->getType()->isIntegerType()) {
+    return;
+  }
+
+  SmallVector<Expr*, 2> Args;
+
+  // Each argument must be an integer constant expression.
+  for (AttributeList::arg_iterator I = Attr.arg_begin(),
+       E = Attr.arg_end(); I!=E; ++I) {
+    Expr *Ex = *I;
+    llvm::APSInt ArgNum;
+    if (Ex->isTypeDependent() || Ex->isValueDependent() ||
+        !Ex->isIntegerConstantExpr(ArgNum, S.Context)) {
+      S.Diag(Attr.getLoc(), diag::err_attribute_argument_not_int)
+      << "range" << Ex->getSourceRange();
+      return;
+    }
+    Args.push_back(Ex);
+  }
+
+  Expr **StartArg = &Args[0];
+  D->addAttr(::new (S.Context) RangeAttr(Attr.getRange(), S.Context,
+                                         StartArg, Args.size()));
+}
+
 //===----------------------------------------------------------------------===//
 // Top Level Sema Entry Points
 //===----------------------------------------------------------------------===//
@@ -4452,6 +4490,11 @@ static void ProcessInheritableDeclAttr(Sema &S, Scope *scope, Decl *D,
     break;
   case AttributeList::AT_TypeTagForDatatype:
     handleTypeTagForDatatypeAttr(S, D, Attr);
+    break;
+
+  // Range attribute.
+  case AttributeList::AT_Range:
+    handleRangeAttr(S, D, Attr);
     break;
 
   default:

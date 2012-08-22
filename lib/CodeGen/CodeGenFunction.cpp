@@ -1233,3 +1233,22 @@ llvm::Value *CodeGenFunction::EmitFieldAnnotations(const FieldDecl *D,
 
   return V;
 }
+
+llvm::MDNode *CodeGenFunction::EmitRangeMetadata(const Decl *D,
+                                                 llvm::Value *V) {
+  RangeAttr *attr = D->getAttr<RangeAttr>();
+  llvm::APSInt Min, Max;
+  llvm::Type *VTy = V->getType()->getSequentialElementType();
+  unsigned BitWidth = VTy->getIntegerBitWidth();
+
+  Expr **EI = attr->args_begin();
+  (*EI)->isIntegerConstantExpr(Min, getContext());
+  Min = Min.extOrTrunc(BitWidth);
+  ++EI;
+  (*EI)->isIntegerConstantExpr(Max, getContext());
+  Max = Max.extOrTrunc(BitWidth);
+  ++Max;
+
+  llvm::MDBuilder MDHelper(getLLVMContext());
+  return MDHelper.createRange(Min, Max);
+}

@@ -111,6 +111,8 @@ class LValue {
   llvm::Value *V;
 
   union {
+    llvm::MDNode *RangeInfo;
+
     // Index into a vector subscript: V[i]
     llvm::Value *VectorIdx;
 
@@ -232,6 +234,11 @@ public:
     assert(isSimple());
     V = address;
   }
+  llvm::MDNode *getRangeInfo() const { assert(isSimple()); return RangeInfo; }
+  void setRangeInfo(llvm::MDNode *range) {
+    assert(isSimple());
+    RangeInfo = range;
+  }
 
   // vector elt lvalue
   llvm::Value *getVectorAddr() const { assert(isVectorElt()); return V; }
@@ -263,6 +270,7 @@ public:
     LValue R;
     R.LVType = Simple;
     R.V = address;
+    R.RangeInfo = 0;
     R.Initialize(type, qs, alignment, TBAAInfo);
     return R;
   }

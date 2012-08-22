@@ -2052,6 +2052,7 @@ public:
   /// the LLVM value representation.
   llvm::Value *EmitLoadOfScalar(llvm::Value *Addr, bool Volatile,
                                 unsigned Alignment, QualType Ty,
+                                llvm::MDNode *RangeInfo = 0,
                                 llvm::MDNode *TBAAInfo = 0);
 
   /// EmitLoadOfScalar - Load a scalar value from an address, taking
@@ -2485,6 +2486,9 @@ public:
   /// Emit field annotations for the given field & value. Returns the
   /// annotation result.
   llvm::Value *EmitFieldAnnotations(const FieldDecl *D, llvm::Value *V);
+
+  // Emit range metadata for the variable V, declared by D.
+  llvm::MDNode *EmitRangeMetadata(const Decl *D, llvm::Value *V);
 
   //===--------------------------------------------------------------------===//
   //                             Internal Helpers

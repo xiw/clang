@@ -567,6 +567,11 @@ def Pure : InheritableAttr {
   let Spellings = [GNU<"pure">];
 }
 
+def Range : InheritableAttr {
+  let Spellings = [GNU<"range">];
+  let Args = [VariadicExprArgument<"Args">];
+}
+
 def Regparm : InheritableAttr {
   let Spellings = [GNU<"regparm">];
   let Args = [UnsignedArgument<"NumParams">];

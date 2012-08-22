@@ -882,7 +882,8 @@ CodeGenFunction::tryEmitAsConstant(DeclRefExpr *refExpr) {
 llvm::Value *CodeGenFunction::EmitLoadOfScalar(LValue lvalue) {
   return EmitLoadOfScalar(lvalue.getAddress(), lvalue.isVolatile(),
                           lvalue.getAlignment().getQuantity(),
-                          lvalue.getType(), lvalue.getTBAAInfo());
+                          lvalue.getType(), lvalue.getRangeInfo(),
+                          lvalue.getTBAAInfo());
 }
 
 static bool hasBooleanRepresentation(QualType Ty) {
@@ -937,6 +938,7 @@ llvm::MDNode *CodeGenFunction::getRangeForLoadFromType(QualType Ty) {
 
 llvm::Value *CodeGenFunction::EmitLoadOfScalar(llvm::Value *Addr, bool Volatile,
                                               unsigned Alignment, QualType Ty,
+                                              llvm::MDNode *RangeInfo,
                                               llvm::MDNode *TBAAInfo) {
   
   // For better performance, handle vector loads differently.
@@ -993,9 +995,10 @@ llvm::Value *CodeGenFunction::EmitLoadOfScalar(llvm::Value *Addr, bool Volatile,
   if (Ty->isAtomicType())
     Load->setAtomic(llvm::SequentiallyConsistent);
 
-  if (CGM.getCodeGenOpts().OptimizationLevel > 0)
-    if (llvm::MDNode *RangeInfo = getRangeForLoadFromType(Ty))
-      Load->setMetadata(llvm::LLVMContext::MD_range, RangeInfo);
+  if (!RangeInfo && CGM.getCodeGenOpts().OptimizationLevel > 0)
+    RangeInfo = getRangeForLoadFromType(Ty);
+  if (RangeInfo)
+    Load->setMetadata(llvm::LLVMContext::MD_range, RangeInfo);
 
   return EmitFromMemory(Load, Ty);
 }
@@ -1617,6 +1620,8 @@ static LValue EmitGlobalVarDeclLValue(CodeGenFunction &CGF,
   } else {
     LV = CGF.MakeAddrLValue(V, E->getType(), Alignment);
   }
+  if (VD->hasAttr<RangeAttr>())
+    LV.setRangeInfo(CGF.EmitRangeMetadata(VD, V));
   setObjCGCLValueClass(CGF.getContext(), E, LV);
   return LV;
 }
@@ -2208,6 +2213,9 @@ LValue CodeGenFunction::EmitLValueForField(LValue base,
 
   LValue LV = MakeAddrLValue(addr, type, alignment);
   LV.getQuals().addCVRQualifiers(cvr);
+
+  if (field->hasAttr<RangeAttr>())
+    LV.setRangeInfo(EmitRangeMetadata(field, addr));
 
   // __weak attribute on a field is ignored.
   if (LV.getQuals().getObjCGCAttr() == Qualifiers::Weak)
