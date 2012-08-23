@@ -1708,6 +1708,9 @@ LValue CodeGenFunction::EmitDeclRefLValue(const DeclRefExpr *E) {
       LV = MakeAddrLValue(V, T, Alignment);
     }
 
+    if (VD->hasAttr<RangeAttr>())
+      LV.setRangeInfo(EmitRangeMetadata(VD, V));
+
     if (NonGCable) {
       LV.getQuals().removeObjCGCAttr();
       LV.setNonGC(true);

@@ -111,8 +111,6 @@ class LValue {
   llvm::Value *V;
 
   union {
-    llvm::MDNode *RangeInfo;
-
     // Index into a vector subscript: V[i]
     llvm::Value *VectorIdx;
 
@@ -150,6 +148,9 @@ class LValue {
 
   Expr *BaseIvarExp;
 
+  /// RangeInfo - range information to attach to deferences of this LValue.
+  llvm::MDNode *RangeInfo;
+
   /// TBAAInfo - TBAA information to attach to dereferences of this LValue.
   llvm::MDNode *TBAAInfo;
 
@@ -167,6 +168,7 @@ private:
     this->Ivar = this->ObjIsArray = this->NonGC = this->GlobalObjCRef = false;
     this->ThreadLocalRef = false;
     this->BaseIvarExp = 0;
+    this->RangeInfo = 0;
     this->TBAAInfo = TBAAInfo;
   }
 
@@ -217,6 +219,9 @@ public:
   Expr *getBaseIvarExp() const { return BaseIvarExp; }
   void setBaseIvarExp(Expr *V) { BaseIvarExp = V; }
 
+  llvm::MDNode *getRangeInfo() const { return RangeInfo; }
+  void setRangeInfo(llvm::MDNode *range) { RangeInfo = range; }
+
   llvm::MDNode *getTBAAInfo() const { return TBAAInfo; }
   void setTBAAInfo(llvm::MDNode *N) { TBAAInfo = N; }
 
@@ -233,11 +238,6 @@ public:
   void setAddress(llvm::Value *address) {
     assert(isSimple());
     V = address;
-  }
-  llvm::MDNode *getRangeInfo() const { assert(isSimple()); return RangeInfo; }
-  void setRangeInfo(llvm::MDNode *range) {
-    assert(isSimple());
-    RangeInfo = range;
   }
 
   // vector elt lvalue
@@ -270,7 +270,6 @@ public:
     LValue R;
     R.LVType = Simple;
     R.V = address;
-    R.RangeInfo = 0;
     R.Initialize(type, qs, alignment, TBAAInfo);
     return R;
   }
