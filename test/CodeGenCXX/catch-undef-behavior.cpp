@@ -130,7 +130,7 @@ int lsh_overflow(int a, int b) {
   // CHECK-NEXT: %[[NO_OVERFLOW:.*]] = icmp eq i32 %[[SHIFTED_OUT_NOT_SIGN]], 0
   // CHECK-NEXT: br i1 %[[NO_OVERFLOW]]
 
-  // CHECK: %[[RET:.*]] = shl i32 %[[LHS]], %[[RHS]]
+  // CHECK: %[[RET:.*]] = shl nuw nsw i32 %[[LHS]], %[[RHS]]
   // CHECK-NEXT: ret i32 %[[RET]]
   return a << b;
 }

@@ -91,7 +91,7 @@ int lsh_overflow(int a, int b) {
   // CHECK-NEXT: %[[ARG2:.*]] = zext
   // CHECK-NEXT: call void @__ubsan_handle_shift_out_of_bounds(i8* bitcast ({{.*}} @[[LINE_300_B]] to i8*), i64 %[[ARG1]], i64 %[[ARG2]])
 
-  // CHECK:      %[[RET:.*]] = shl i32 %[[LHS]], %[[RHS]]
+  // CHECK:      %[[RET:.*]] = shl nuw nsw i32 %[[LHS]], %[[RHS]]
   // CHECK-NEXT: ret i32 %[[RET]]
 #line 300
   return a << b;

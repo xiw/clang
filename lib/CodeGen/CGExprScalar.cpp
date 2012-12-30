@@ -2388,6 +2388,17 @@ Value *ScalarExprEmitter::EmitShl(const BinOpInfo &Ops) {
   if (Ops.LHS->getType() != RHS->getType())
     RHS = Builder.CreateIntCast(RHS, Ops.LHS->getType(), false, "sh_prom");
 
+  bool HasNSW = false;
+  bool HasNUW = false;
+  // C99 6.5.7p4, C++11 5.8p2:
+  //   If E1 has a signed type and non-negative value, and E1 * 2^E2 is
+  //   representable in the result type, then that is the resulting value;
+  //   otherwise, the behavior is undefined.
+  if (Ops.Ty->isSignedIntegerType()) {
+    HasNSW = true;
+    HasNUW = true;
+  }
+
   if (CGF.getLangOpts().SanitizeShift &&
       isa<llvm::IntegerType>(Ops.LHS->getType())) {
     unsigned Width = cast<llvm::IntegerType>(Ops.LHS->getType())->getBitWidth();
@@ -2418,7 +2429,7 @@ Value *ScalarExprEmitter::EmitShl(const BinOpInfo &Ops) {
     }
   }
 
-  return Builder.CreateShl(Ops.LHS, RHS, "shl");
+  return Builder.CreateShl(Ops.LHS, RHS, "shl", HasNUW, HasNSW);
 }
 
 Value *ScalarExprEmitter::EmitShr(const BinOpInfo &Ops) {
